@@ -4,27 +4,45 @@ import (
 	"net/http"
 	"log"
 	"github.com/gorilla/mux"
+	"os"
 )
 
-const BIND_ADDRESS string = ":8000"
-const STATIC_DIRECTORY string = "static"
-const STATIC_MOUNT_POINT string = "/"
+var bindAddress string = ":8000"
+var staticDirectory string = "static"
+var api MajesticApi
 
-func RootHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Gorilla!\n"))
+func envWithDefault(envVar string, defaultValue string) string {
+	value := os.Getenv(envVar)
+	if value == "" {
+		log.Printf("%s not present in environment; using default value '%s'\n", envVar, defaultValue)
+		return defaultValue
+	} else {
+		return value
+	}
+}
+
+func TestHandler(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func main() {
-	log.Printf("Starting server on %s.\n", BIND_ADDRESS)
+	majesticApiKey := os.Getenv("MAJESTIC_API_KEY")
+	if majesticApiKey == "" {
+		log.Fatalln("Cannot start: MAJESTIC_API_KEY missing from env.")
+	}
+	bindAddress := envWithDefault("BIND_ADDRESS", ":8000")
+	staticDirectory := envWithDefault("STATIC_DIRECTORY", "static")
+
+	api = MajesticApi{apiKey:majesticApiKey}
+
+	log.Printf("Starting server on %s.\n", bindAddress)
 
 	r := mux.NewRouter()
 	// Routes consist of a path and a handler function.
-	r.HandleFunc("/test", RootHandler)
+	r.HandleFunc("/test", TestHandler)
 
-	r.PathPrefix(STATIC_MOUNT_POINT).Handler(
-			http.StripPrefix(STATIC_MOUNT_POINT,
-			http.FileServer(http.Dir(STATIC_DIRECTORY))))
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir(staticDirectory)))
 
 	// Bind to a port and pass our router in
-	log.Fatal(http.ListenAndServe(BIND_ADDRESS, r))
+	log.Fatal(http.ListenAndServe(bindAddress, r))
 }
