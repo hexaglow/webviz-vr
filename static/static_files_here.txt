@@ -1,0 +1,2 @@
+Place static files in this directory. They will be served at the root
+of the http server. Custom code handlers take priority over static files.
