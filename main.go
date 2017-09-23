@@ -19,7 +19,7 @@ func main() {
 
 	r := mux.NewRouter()
 	// Routes consist of a path and a handler function.
-	r.HandleFunc("/", RootHandler)
+	r.HandleFunc("/test", RootHandler)
 
 	r.PathPrefix(STATIC_MOUNT_POINT).Handler(
 			http.StripPrefix(STATIC_MOUNT_POINT,
